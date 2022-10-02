@@ -43,8 +43,8 @@ os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 
 if __name__ == '__main__':
   
-  #mod = sys.argv[2]
-  mod = 'predict'
+  mod = sys.argv[1]
+  #mod = 'predict'
   if mod == 'train':
     print("\n\n\n\n\n\n\n\n\n\n\n\n\n")
     all_spec = glob('./chunck_*.pkgz')
@@ -55,10 +55,6 @@ if __name__ == '__main__':
         X.append(s[j])
     X = np.array(X)
     np.random.shuffle(X)
-
-    pprint.pprint(X)
-    print("\n\n\n\n\n", len(X))
-    X = X[:int(len(X) / 5)]
 
     # setup gan
     # note: assume square images, so only need 1 dim

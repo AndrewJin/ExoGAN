@@ -485,27 +485,27 @@ class DCGAN(object):
             spectrum = spectrum[:23, :23, 0].flatten()
             spectra.append(spectrum)
 
-            #chi_square.append(chisquare(spectrum[:440], f_exp=real_spec[:440])[0])
-          #best_ind = chi_square.index(min(chi_square))
+            chi_square.append(chisquare(spectrum[:440], f_exp=real_spec[:440])[0])
+          best_ind = chi_square.index(min(chi_square))
           
           
           print(i, np.mean(loss[0:batchSz]))
-          #imgName = os.path.join(config.outDir,
-          #                       'hats_imgs/{:04d}.png'.format(i))
+          imgName = os.path.join(config.outDir,
+                                 'hats_imgs/{:04d}.png'.format(i))
           
 #          save_images(G_imgs[:nImgs, :, :, :], [nRows, nCols], imgName)
-          #plt.imsave(imgName, G_imgs[best_ind, :, :, 0], cmap='gist_gray', format='png')
-          #plt.close()
-          #resize(imgName)
+          plt.imsave(imgName, G_imgs[best_ind, :, :, 0], cmap='gist_gray', format='png')
+          plt.close()
+          resize(imgName)
 
-          #inv_masked_hat_images = np.multiply(G_imgs, 1.0 - mask)
-          #completed = masked_images + inv_masked_hat_images
-          #imgName = os.path.join(config.outDir,
-          #                       'completed/{:04d}.png'.format(i))
+          inv_masked_hat_images = np.multiply(G_imgs, 1.0 - mask)
+          completed = masked_images + inv_masked_hat_images
+          imgName = os.path.join(config.outDir,
+                                 'completed/{:04d}.png'.format(i))
 #          save_images(completed[:nImgs, :, :, :], [nRows, nCols], imgName)
-          #plt.imsave(imgName, completed[best_ind, :, :, 0], cmap='gist_gray', format='png')
-          #plt.close()
-          #resize(imgName)
+          plt.imsave(imgName, completed[best_ind, :, :, 0], cmap='gist_gray', format='png')
+          plt.close()
+          resize(imgName)
         
           
           
