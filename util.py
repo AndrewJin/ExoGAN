@@ -24,8 +24,8 @@ from scipy.interpolate import interp1d
 import sys
 from corner import *
 import logging
-import cPickle as pickle
-from scipy.misc import imresize
+import pickle
+from cv2 import resize
 from glob import glob
 from tqdm import tqdm
 import matplotlib.pyplot as plt
@@ -75,7 +75,7 @@ def center_crop(x, crop_h, crop_w=None, resize_w=64):
   h, w = x.shape[:2]
   j = int(round((h - crop_h)/2.))
   i = int(round((w - crop_w)/2.))
-  return scipy.misc.imresize(x[j:j+crop_h, i:i+crop_w],
+  return resize(x[j:j+crop_h, i:i+crop_w],
                              [resize_w, resize_w])
 
 def check_molecule_existence(mol_list, array, array_names, default=-7.9):
@@ -238,7 +238,8 @@ def get_spectral_matrix(path, parfile=None, size=23):
 
     # TODO -- correction for stellar radius
     parser = SafeConfigParser()
-    parser.readfp(open(parfile, 'rb'))  # python 2
+    #parser.readfp(open(parfile, 'rb'))  # python 2
+    parser.read_file(open(parfile))
 
     star_radius = getpar(parser, 'Star', 'radius', 'float')
     radius_fac = star_radius ** 2
@@ -506,13 +507,15 @@ def load(filename):
   """Loads a compressed object from disk
   """
   file = gzip.GzipFile(filename, 'rb')
-  buffer = ""
+  buffer = b''
+
   while 1:
     data = file.read()
-    if data == "":
+    if len(data) == 0:
       break
+    print("wtf is the type", type(data))
     buffer += data
-  object = pickle.loads(buffer)
+  object = pickle.loads(buffer, encoding='latin1')
   file.close()
   return object
 
@@ -761,6 +764,7 @@ def spectra_real_norm(Xtrue, imgsz, wnw_grid, batchSz, G_imgs, config, i):
   chi_square = []
   spectra = []
   f, ax = plt.subplots(sharey=True, figsize=(12, 6))
+  return
   for k in range(batchSz):
     spectrum = G_imgs[k, :imgsz, :imgsz, :]
     spectrum[23:, :, 0] = real_spec_ori[23:, :, 0]

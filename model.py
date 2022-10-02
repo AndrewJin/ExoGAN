@@ -4,13 +4,12 @@ from scipy.stats import chisquare
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 from datetime import datetime
-import cPickle as pickle
+import pickle
 import time
 from util import *
 from ops import *
 from corner import *
-
-
+tf.compat.v1.disable_eager_execution()
 
 def conv_out_size_same(size, stride):
   return int(math.ceil(float(size) / float(stride)))
@@ -70,12 +69,12 @@ class DCGAN(object):
     self.model_name = "DCGAN.model"
 
   def build_model(self):
-    self.is_training = tf.placeholder(tf.bool, name='is_training')
-    self.images = tf.placeholder(
+    self.is_training = tf.compat.v1.placeholder(tf.bool, name='is_training')
+    self.images = tf.compat.v1.placeholder(
       tf.float32, [None] + self.image_shape, name='real_images')
     
-    self.z = tf.placeholder(tf.float32, [None, self.z_dim], name='z')
-    self.z_sum = tf.summary.histogram("z", self.z)
+    self.z = tf.compat.v1.placeholder(tf.float32, [None, self.z_dim], name='z')
+    self.z_sum = tf.compat.v1.summary.histogram("z", self.z)
 
     self.G = self.generator(self.z)
     
@@ -83,63 +82,63 @@ class DCGAN(object):
 
     self.D_, self.D_logits_ = self.discriminator(self.G, reuse=True)
 
-    self.d_sum = tf.summary.histogram("d", self.D)
-    self.d__sum = tf.summary.histogram("d_", self.D_)
-    self.G_sum = tf.summary.image("G", self.G)
+    self.d_sum = tf.compat.v1.summary.histogram("d", self.D)
+    self.d__sum = tf.compat.v1.summary.histogram("d_", self.D_)
+    self.G_sum = tf.compat.v1.summary.image("G", self.G)
 
     self.d_loss_real = tf.reduce_mean(
-      tf.nn.sigmoid_cross_entropy_with_logits(logits=self.D_logits,
+      input_tensor=tf.nn.sigmoid_cross_entropy_with_logits(logits=self.D_logits,
                                               labels=tf.ones_like(self.D)))
     self.d_loss_fake = tf.reduce_mean(
-      tf.nn.sigmoid_cross_entropy_with_logits(logits=self.D_logits_,
+      input_tensor=tf.nn.sigmoid_cross_entropy_with_logits(logits=self.D_logits_,
                                               labels=tf.zeros_like(self.D_)))
     self.g_loss = tf.reduce_mean(
-      tf.nn.sigmoid_cross_entropy_with_logits(logits=self.D_logits_,
+      input_tensor=tf.nn.sigmoid_cross_entropy_with_logits(logits=self.D_logits_,
                                               labels=tf.ones_like(self.D_)))
 
-    self.d_loss_real_sum = tf.summary.scalar("d_loss_real", self.d_loss_real)
-    self.d_loss_fake_sum = tf.summary.scalar("d_loss_fake", self.d_loss_fake)
+    self.d_loss_real_sum = tf.compat.v1.summary.scalar("d_loss_real", self.d_loss_real)
+    self.d_loss_fake_sum = tf.compat.v1.summary.scalar("d_loss_fake", self.d_loss_fake)
 
     self.d_loss = self.d_loss_real + self.d_loss_fake
 
-    self.g_loss_sum = tf.summary.scalar("g_loss", self.g_loss)
-    self.d_loss_sum = tf.summary.scalar("d_loss", self.d_loss)
+    self.g_loss_sum = tf.compat.v1.summary.scalar("g_loss", self.g_loss)
+    self.d_loss_sum = tf.compat.v1.summary.scalar("d_loss", self.d_loss)
 
-    t_vars = tf.trainable_variables()
+    t_vars = tf.compat.v1.trainable_variables()
 
     self.d_vars = [var for var in t_vars if 'd_' in var.name]
     self.g_vars = [var for var in t_vars if 'g_' in var.name]
 
-    self.saver = tf.train.Saver(max_to_keep=1)
+    self.saver = tf.compat.v1.train.Saver(max_to_keep=1)
 
     # Completion.
-    self.mask = tf.placeholder(tf.float32, self.image_shape, name='mask')
+    self.mask = tf.compat.v1.placeholder(tf.float32, self.image_shape, name='mask')
     self.contextual_loss = tf.reduce_sum(
-      tf.contrib.layers.flatten(
-        tf.abs(tf.multiply(self.mask, self.G) - tf.multiply(self.mask, self.images))), 1)
+      input_tensor=tf.keras.layers.Flatten()(
+        tf.abs(tf.multiply(self.mask, self.G) - tf.multiply(self.mask, self.images))), axis=1)
     self.perceptual_loss = self.g_loss
     self.complete_loss = self.contextual_loss + self.lam * self.perceptual_loss
-    self.grad_complete_loss = tf.gradients(self.complete_loss, self.z)
+    self.grad_complete_loss = tf.gradients(ys=self.complete_loss, xs=self.z)
 
   def train(self, config, X):
     data = X
     np.random.shuffle(data)
     assert (len(data) > 0)
 
-    d_optim = tf.train.AdamOptimizer(config.learning_rate, beta1=config.beta1) \
+    d_optim = tf.compat.v1.train.AdamOptimizer(config.learning_rate, beta1=config.beta1) \
       .minimize(self.d_loss, var_list=self.d_vars)
-    g_optim = tf.train.AdamOptimizer(config.learning_rate, beta1=config.beta1) \
+    g_optim = tf.compat.v1.train.AdamOptimizer(config.learning_rate, beta1=config.beta1) \
       .minimize(self.g_loss, var_list=self.g_vars)
     with self.sess.as_default():
       try:
-        tf.global_variables_initializer().run()
+        tf.compat.v1.global_variables_initializer().run()
       except:
-        tf.initialize_all_variables().run()
-    self.g_sum = tf.summary.merge(
+        tf.compat.v1.initialize_all_variables().run()
+    self.g_sum = tf.compat.v1.summary.merge(
       [self.z_sum, self.d__sum, self.G_sum, self.d_loss_fake_sum, self.g_loss_sum])
-    self.d_sum = tf.summary.merge(
+    self.d_sum = tf.compat.v1.summary.merge(
       [self.z_sum, self.d_sum, self.d_loss_real_sum, self.d_loss_sum])
-    self.writer = tf.summary.FileWriter("./logs", self.sess.graph)
+    self.writer = tf.compat.v1.summary.FileWriter("./logs", self.sess.graph)
     
 
     sample_z = np.random.uniform(-1, 1, size=(self.sample_size, self.z_dim))
@@ -169,11 +168,11 @@ class DCGAN(object):
             ======
             """)
 
-    for epoch in xrange(config.epoch):
+    for epoch in range(config.epoch):
       data = X
       batch_idxs = min(len(data), config.train_size) // self.batch_size
 
-      for idx in xrange(0, batch_idxs):
+      for idx in range(0, batch_idxs):
         batch_files = data[idx * config.batch_size:(idx + 1) * config.batch_size]
         batch = [get_spectral_matrix(batch_file, size=self.image_size - 10)
                  for batch_file in batch_files]
@@ -245,9 +244,9 @@ class DCGAN(object):
     
     with self.sess.as_default():
       try:
-        tf.global_variables_initializer().run()
+        tf.compat.v1.global_variables_initializer().run()
       except:
-        tf.initialize_all_variables().run()
+        tf.compat.v1.initialize_all_variables().run()
 
     isLoaded = self.load(self.checkpoint_dir)
     assert (isLoaded)
@@ -300,7 +299,7 @@ class DCGAN(object):
     else:
       assert (False)
 
-    for idx in xrange(0, batch_idxs):
+    for idx in range(0, batch_idxs):
       l = idx * self.batch_size
       u = min((idx + 1) * self.batch_size, nImgs)
       batchSz = u - l
@@ -348,7 +347,8 @@ class DCGAN(object):
                   ' '.join(['z{}'.format(zi) for zi in range(self.z_dim)]) +
                   '\n')
       
-      for i in xrange(config.nIter):
+      config.nIter = 300
+      for i in range(config.nIter):
         
         fd = {
           self.z: zhats,
@@ -365,7 +365,7 @@ class DCGAN(object):
             np.savetxt(f, zhats[img:img + 1])
 
         if i % config.outInterval == 0:
-          prediction_file = open(config.outDir+'predictions/prediction_{:04d}.txt'.format(i), 'w')
+          prediction_file = open(config.outDir+'/predictions/prediction_{:04d}.txt'.format(i), 'w')
           
           ranges = []
           ground_truths = []
@@ -382,8 +382,9 @@ class DCGAN(object):
             your spectrum does not contain a molecule, the default value is fixed
             to -7.9
             """
-            parser.readfp(open(X[:-3] + 'par', 'rb')) # python 2
-                          
+            #parser.readfp(open(X[:-3] + 'par', 'rb')) # python 2
+            parser.read_file(open(X[:-3] + 'par'))
+
             real_tp = getpar(parser, 'Atmosphere', 'tp_iso_temp', 'float' )
             real_rp = getpar(parser, 'Planet', 'radius', 'float')
             real_mp = getpar(parser, 'Planet', 'mass', 'float')
@@ -446,7 +447,7 @@ class DCGAN(object):
             hist_dict[labels[his]]['weights'] = weights
             hist_dict[labels[his]]['bins'] = ranges[his]
             ax[ii, his-jj].hist(all_hists[his], bins=np.linspace(min(ranges[his]), max(ranges[his]), 20), 
-              color='firebrick', weights=weights, normed=0)
+              color='firebrick', weights=weights, density=False)
 #            ax[his].set_ylim(0, 1)
             ax[ii, his-jj].set_xlim(min(ranges[his]), max(ranges[his]))
             ax[ii, his-jj].axvline(gan_avg[his], c='g', label='ExoGAN mean')
@@ -483,27 +484,28 @@ class DCGAN(object):
             spectrum = G_imgs[k, :self.image_size, :self.image_size, :]
             spectrum = spectrum[:23, :23, 0].flatten()
             spectra.append(spectrum)
-            chi_square.append(chisquare(spectrum[:440], f_exp=real_spec[:440])[0])
-          best_ind = chi_square.index(min(chi_square))
+
+            #chi_square.append(chisquare(spectrum[:440], f_exp=real_spec[:440])[0])
+          #best_ind = chi_square.index(min(chi_square))
           
           
           print(i, np.mean(loss[0:batchSz]))
-          imgName = os.path.join(config.outDir,
-                                 'hats_imgs/{:04d}.png'.format(i))
+          #imgName = os.path.join(config.outDir,
+          #                       'hats_imgs/{:04d}.png'.format(i))
           
 #          save_images(G_imgs[:nImgs, :, :, :], [nRows, nCols], imgName)
-          plt.imsave(imgName, G_imgs[best_ind, :, :, 0], cmap='gist_gray', format='png')
-          plt.close()
-          resize(imgName)
+          #plt.imsave(imgName, G_imgs[best_ind, :, :, 0], cmap='gist_gray', format='png')
+          #plt.close()
+          #resize(imgName)
 
-          inv_masked_hat_images = np.multiply(G_imgs, 1.0 - mask)
-          completed = masked_images + inv_masked_hat_images
-          imgName = os.path.join(config.outDir,
-                                 'completed/{:04d}.png'.format(i))
+          #inv_masked_hat_images = np.multiply(G_imgs, 1.0 - mask)
+          #completed = masked_images + inv_masked_hat_images
+          #imgName = os.path.join(config.outDir,
+          #                       'completed/{:04d}.png'.format(i))
 #          save_images(completed[:nImgs, :, :, :], [nRows, nCols], imgName)
-          plt.imsave(imgName, completed[best_ind, :, :, 0], cmap='gist_gray', format='png')
-          plt.close()
-          resize(imgName)
+          #plt.imsave(imgName, completed[best_ind, :, :, 0], cmap='gist_gray', format='png')
+          #plt.close()
+          #resize(imgName)
         
           
           
@@ -564,7 +566,7 @@ class DCGAN(object):
           assert (False)
 
   def discriminator(self, image, reuse=False):
-    with tf.variable_scope("discriminator") as scope:
+    with tf.compat.v1.variable_scope("discriminator") as scope:
       if reuse:
         scope.reuse_variables()
 
@@ -579,7 +581,7 @@ class DCGAN(object):
       return tf.nn.sigmoid(h4), h4
   
   def generator(self, z):
-    with tf.variable_scope("generator") as scope:
+    with tf.compat.v1.variable_scope("generator") as scope:
       s_h, s_w = self.image_size, self.image_size
       s_h2, s_w2 = conv_out_size_same(s_h, 2), conv_out_size_same(s_w, 2)
       s_h4, s_w4 = conv_out_size_same(s_h2, 2), conv_out_size_same(s_w2, 2)

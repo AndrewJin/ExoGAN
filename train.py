@@ -45,7 +45,7 @@ if __name__ == '__main__':
   
     # setup gan
     # note: assume square images, so only need 1 dim
-    flags = tf.app.flags
+    flags = tf.compat.v1.app.flags
     flags.DEFINE_string("mod", 'train', "choose working modality")
     flags.DEFINE_integer("epoch", 1, "Epoch to train [25]")
     flags.DEFINE_float("learning_rate", 0.0002, "Learning rate of for adam [0.0002]")
@@ -78,10 +78,10 @@ if __name__ == '__main__':
     np.random.shuffle(X)
     
     
-    tf.reset_default_graph()
-    config = tf.ConfigProto(log_device_placement=True)
+    tf.compat.v1.reset_default_graph()
+    config = tf.compat.v1.ConfigProto(log_device_placement=True)
     config.gpu_options.allow_growth = True
-    sess = tf.Session(config=config)
+    sess = tf.compat.v1.Session(config=config)
     dcgan = DCGAN(sess,
                   image_size=FLAGS.image_size, 
                   is_crop=False,

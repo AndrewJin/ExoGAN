@@ -78,10 +78,10 @@ if __name__ == '__main__':
     
     args = parser.parse_args()
     assert(os.path.exists(args.checkpointDir))
-    tf.reset_default_graph()
-    config = tf.ConfigProto(log_device_placement=True)
+    tf.compat.v1.reset_default_graph()
+    config = tf.compat.v1.ConfigProto(log_device_placement=True)
     config.gpu_options.allow_growth = True
-    sess = tf.Session(config=config)
+    sess = tf.compat.v1.Session(config=config)
     
     spectrum = args.input_spectrum
     

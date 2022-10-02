@@ -27,15 +27,15 @@ from scipy.stats import chisquare
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 from datetime import datetime
-import cPickle as pickle
+import pickle
 import time
 from util import *
 from ops import *
 import multiprocessing
 from multiprocessing import Pool
 from model import DCGAN
+import pprint
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3' 
-np.set_printoptions(threshold='nan')
 
 
 
@@ -43,9 +43,11 @@ np.set_printoptions(threshold='nan')
 
 if __name__ == '__main__':
   
-  mod = sys.argv[2]
+  #mod = sys.argv[2]
+  mod = 'predict'
   if mod == 'train':
-    all_spec = glob.glob('./chunck_*.pkgz')
+    print("\n\n\n\n\n\n\n\n\n\n\n\n\n")
+    all_spec = glob('./chunck_*.pkgz')
     X = []
     for i in range(len(all_spec)):
       s = load(all_spec[i])
@@ -54,10 +56,13 @@ if __name__ == '__main__':
     X = np.array(X)
     np.random.shuffle(X)
 
-    
+    pprint.pprint(X)
+    print("\n\n\n\n\n", len(X))
+    X = X[:int(len(X) / 5)]
+
     # setup gan
     # note: assume square images, so only need 1 dim
-    flags = tf.app.flags
+    flags = tf.compat.v1.app.flags
     flags.DEFINE_string("mod", 'train', "choose working modality")
     flags.DEFINE_integer("epoch", 1, "Epoch to train [25]")
     flags.DEFINE_float("learning_rate", 0.0002, "Learning rate of for adam [0.0002]")
@@ -74,10 +79,10 @@ if __name__ == '__main__':
     if not os.path.exists(FLAGS.sample_dir):
         os.makedirs(FLAGS.sample_dir)
     
-    tf.reset_default_graph()
-    config = tf.ConfigProto(log_device_placement=True)
+    tf.compat.v1.reset_default_graph()
+    config = tf.compat.v1.ConfigProto(log_device_placement=True)
     config.gpu_options.allow_growth = True
-    sess = tf.Session(config=config)
+    sess = tf.compat.v1.Session(config=config)
     dcgan = DCGAN(sess,
                   image_size=FLAGS.image_size, 
                   is_crop=False,
@@ -130,10 +135,10 @@ if __name__ == '__main__':
     
     args = parser.parse_args()
     assert(os.path.exists(args.checkpointDir))
-    tf.reset_default_graph()
-    config = tf.ConfigProto(log_device_placement=True)
+    tf.compat.v1.reset_default_graph()
+    config = tf.compat.v1.ConfigProto(log_device_placement=True)
     config.gpu_options.allow_growth = True
-    sess = tf.Session(config=config)
+    sess = tf.compat.v1.Session(config=config)
     dcgan = DCGAN(sess, 
                   image_size=args.imgSize,
                   z_dim=100,
