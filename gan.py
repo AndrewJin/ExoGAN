@@ -99,6 +99,7 @@ if __name__ == '__main__':
     spectrum = ['./input_spectrum.dat']
    
     parser = argparse.ArgumentParser()
+    parser.add_argument('predict',nargs=argparse.REMAINDER)
     parser.add_argument('--mod', type=str, default='predict')
     parser.add_argument('--errorbar', type=float, default=0)
     parser.add_argument('--spec_num', type=int, default=0)

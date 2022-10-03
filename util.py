@@ -244,7 +244,7 @@ def get_spectral_matrix(path, parfile=None, size=23):
     star_radius = getpar(parser, 'Star', 'radius', 'float')
     radius_fac = star_radius ** 2
     spec = np.genfromtxt(path)
-    
+
     _, wnw_min = find_nearest(wnw_grid, max(spec[:, 0]))
     _, wnw_max = find_nearest(wnw_grid, min(spec[:, 0]))
     
@@ -253,8 +253,7 @@ def get_spectral_matrix(path, parfile=None, size=23):
     spec_err[wnw_min:wnw_max + 1] = spec[:, 2] * radius_fac
     
     spectrum = np.random.normal(spectrum, spec_err)
-    
-     
+ 
 
     max_s = np.mean(spectrum) / global_maximum
     mean_param = [max_s] * half_row
@@ -272,16 +271,19 @@ def get_spectral_matrix(path, parfile=None, size=23):
       h2o_mixratio = atm_active_gases_mixratios[index]
     else:
       h2o_mixratio = 1e-8
+
     if 'CH4' in atm_active_gases:
       index = np.where(atm_active_gases == 'CH4')[0]
       ch4_mixratio = atm_active_gases_mixratios[index]
     else:
       ch4_mixratio = 1e-8
+
     if 'CO2' in atm_active_gases:
       index = np.where(atm_active_gases == 'CO2')[0]
       co2_mixratio = atm_active_gases_mixratios[index]
     else:
       co2_mixratio = 1e-8
+    
     if 'CO' in atm_active_gases:
       index = np.where(atm_active_gases == 'CO')[0]
       co_mixratio = atm_active_gases_mixratios[index]
@@ -333,7 +335,7 @@ def get_spectral_matrix(path, parfile=None, size=23):
   new_row = np.zeros((new_size, new_size, 1))
 
   norm_spectrum = np.array(spectrum)
-
+  np.set_printoptions(threshold=np.inf)
   for i in range(len(norm_idx) - 1):
     frag = spectrum[norm_idx[i]:norm_idx[i + 1]]
     if i == len(norm_idx) - 2:
@@ -349,6 +351,8 @@ def get_spectral_matrix(path, parfile=None, size=23):
       norm_spectrum[norm_idx[i]:norm_idx[i + 1]][-4:] = 0
     else:
       norm_spectrum[norm_idx[i]:norm_idx[i + 1]] = (frag - minf) / (maxf - minf)
+
+    #print("the maximum and minimum or something\n\n\n", maxf/global_maximum,global_minimum/minf)
     if i < (len(norm_idx) - 1) / 2:
       new_row[0:12, size + i, 0] = maxf / global_maximum
       if minf > 0:
@@ -361,11 +365,13 @@ def get_spectral_matrix(path, parfile=None, size=23):
         new_row[size - 7 + i, 12:size, 0] = global_minimum / minf
       else:
         new_row[size - 7 + i, 12:size, 0] = 0
+    #print("new_row", new_row.flatten())
 
   row = np.concatenate((norm_spectrum, mean_param))
   row = row.reshape(size, size)
 
   new_row[:size, :size, 0] = row
+  #print("new_row", new_row)
 
   try:
     # Add CO2
@@ -398,7 +404,7 @@ def get_spectral_matrix(path, parfile=None, size=23):
       new_row[-2, :size, 0] = planet_radius
       # Add Tp
       new_row[-1, :size, 0] = planet_temperature
-
+  #print("last\n\n\n", new_row.flatten(), len(new_row))
   return new_row
 
 def get_test_image(X, sigma=0.0, size=33, batch_size=64, parfile=None, wfc3=False):

@@ -308,6 +308,7 @@ class DCGAN(object):
         Xt = get_test_image(X, sigma=sigma, size=self.image_size, batch_size=self.batch_size)
       else:
         Xtrue = get_spectral_matrix(X, parfile=X[:-3]+'par', size=self.image_size - 10)
+        #print("xtrue", Xtrue)
         Xt = get_test_image(X, sigma=sigma, size=self.image_size, batch_size=self.batch_size, parfile=X[:-3]+'par')
       spec_parameters = get_parameters(Xtrue, size=self.image_size)
       
@@ -347,7 +348,7 @@ class DCGAN(object):
                   ' '.join(['z{}'.format(zi) for zi in range(self.z_dim)]) +
                   '\n')
       
-      config.nIter = 300
+      config.nIter = 20000
       for i in range(config.nIter):
         
         fd = {
@@ -475,17 +476,23 @@ class DCGAN(object):
             pickle.dump(hist_dict,fp)
             
           real_spec = Xtrue[:self.image_size, :self.image_size, :]
+          #print("\n\n\n\nreal_spec", real_spec)
           real_spec = real_spec[:23, :23, 0].flatten()
           
           chi_square = []
           spectra = []
           f, ax = plt.subplots(sharey=True, figsize=(12, 6))
+
+          non_zero_real_spec_indices = [i for i in range(440) if real_spec[i] != 0]
+          non_zero_real_spec  = [real_spec[ind] for ind in non_zero_real_spec_indices]
           for k in range(batchSz):
             spectrum = G_imgs[k, :self.image_size, :self.image_size, :]
             spectrum = spectrum[:23, :23, 0].flatten()
             spectra.append(spectrum)
 
-            chi_square.append(chisquare(spectrum[:440], f_exp=real_spec[:440])[0])
+            non_zero_spectrum = [spectrum[ind] for ind in non_zero_real_spec_indices]
+
+            chi_square.append(chisquare(non_zero_spectrum[:440], f_exp=non_zero_real_spec[:440])[0])
           best_ind = chi_square.index(min(chi_square))
           
           
