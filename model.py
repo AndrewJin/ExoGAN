@@ -483,14 +483,17 @@ class DCGAN(object):
           spectra = []
           f, ax = plt.subplots(sharey=True, figsize=(12, 6))
 
-          non_zero_real_spec_indices = [i for i in range(440) if real_spec[i] != 0]
+          non_zero_real_spec_indices = [i for i in range(440) if real_spec[i] != 0] #Nonzero entries in real spectrum
           non_zero_real_spec  = [real_spec[ind] for ind in non_zero_real_spec_indices]
+          print("real", sum(non_zero_real_spec))
           for k in range(batchSz):
             spectrum = G_imgs[k, :self.image_size, :self.image_size, :]
             spectrum = spectrum[:23, :23, 0].flatten()
             spectra.append(spectrum)
 
+            #Make generated spectrum have same entries as real spectrum
             non_zero_spectrum = [spectrum[ind] for ind in non_zero_real_spec_indices]
+            print("fake", sum(non_zero_spectrum))
 
             chi_square.append(chisquare(non_zero_spectrum[:440], f_exp=non_zero_real_spec[:440])[0])
           best_ind = chi_square.index(min(chi_square))
