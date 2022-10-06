@@ -216,7 +216,7 @@ class DCGAN(object):
         if np.mod(counter, 1000) == 2:
           self.save(config.checkpoint_dir, counter)
 
-  def complete(self, config, X, path="", sigma=0.0):
+  def complete(self, config, X, path="", sigma=0.0): #Change this sigma?
     """
     Finds the best representation that can complete any missing 
     part of the ASPA code.
@@ -476,7 +476,6 @@ class DCGAN(object):
             pickle.dump(hist_dict,fp)
             
           real_spec = Xtrue[:self.image_size, :self.image_size, :]
-          #print("\n\n\n\nreal_spec", real_spec)
           real_spec = real_spec[:23, :23, 0].flatten()
           
           chi_square = []
@@ -485,7 +484,7 @@ class DCGAN(object):
 
           non_zero_real_spec_indices = [i for i in range(440) if real_spec[i] != 0] #Nonzero entries in real spectrum
           non_zero_real_spec  = [real_spec[ind] for ind in non_zero_real_spec_indices]
-          print("real", sum(non_zero_real_spec))
+          #print("real", sum(non_zero_real_spec)) #TEST PRINT
           for k in range(batchSz):
             spectrum = G_imgs[k, :self.image_size, :self.image_size, :]
             spectrum = spectrum[:23, :23, 0].flatten()
@@ -493,7 +492,7 @@ class DCGAN(object):
 
             #Make generated spectrum have same entries as real spectrum
             non_zero_spectrum = [spectrum[ind] for ind in non_zero_real_spec_indices]
-            print("fake", sum(non_zero_spectrum))
+            #print("fake", sum(non_zero_spectrum)) #TEST PRINT
 
             chi_square.append(chisquare(non_zero_spectrum[:440], f_exp=non_zero_real_spec[:440])[0])
           best_ind = chi_square.index(min(chi_square))

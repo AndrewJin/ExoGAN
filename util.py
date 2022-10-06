@@ -623,10 +623,12 @@ def recon_spectrum(spec, size=23):
       frag = frag[:-4]
     if i < 7:
       maxf = np.mean(spec[0:12, size + i, 0]) * global_maximum
-      minf = global_minimum / np.mean(spec[12:size, size + i, 0])
+      #print(np.mean(spec[12:size, size + i, 0])) #TEST PRINT
+      minf = global_minimum / (np.mean(spec[12:size, size + i, 0]) + 1e-6) #TEMP FIX
     else:
       maxf = np.mean(spec[size - 7 + i, 0:12, 0]) * global_maximum
-      minf = global_minimum / np.mean(spec[size - 7 + i, 12:size, 0])
+      #print(np.mean(spec[12:size, size + i, 0])) #TEST PRINT
+      minf = global_minimum / (np.mean(spec[size - 7 + i, 12:size, 0]) + 1e-6) #TEMP FIX
 
     const_control = (norm_idx[i] + norm_idx[i + 1]) / 2
 

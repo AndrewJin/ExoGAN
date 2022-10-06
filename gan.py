@@ -96,7 +96,7 @@ if __name__ == '__main__':
     dcgan.train(FLAGS, X)
     
   elif mod == 'predict':
-    spectrum = ['./input_spectrum.dat']
+    spectrum = ['./trappist1g.dat']
    
     parser = argparse.ArgumentParser()
     parser.add_argument('predict',nargs=argparse.REMAINDER)
@@ -143,4 +143,4 @@ if __name__ == '__main__':
                   checkpoint_dir=args.checkpointDir, 
                   c_dim=1,
                   lam=args.lam)
-    dcgan.complete(args, spectrum[0], sigma=0.0)
+    dcgan.complete(args, spectrum[0], sigma=0.0) #Change this?
